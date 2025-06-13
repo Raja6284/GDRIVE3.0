@@ -1,15 +1,19 @@
 const hre = require("hardhat");
 
 async function main() {
+  console.log("Starting deployment...");
+
   const Upload = await hre.ethers.getContractFactory("Upload");
+  console.log("Contract factory obtained.");
+
   const upload = await Upload.deploy();
+  console.log("Contract deployment transaction sent.");
 
-  await upload.deployed();
-
-  console.log("Library deployed to:", upload.address);
+  await upload.waitForDeployment();
+  console.log("Upload contract deployed to:", upload.target);
 }
 
 main().catch((error) => {
-  console.error(error);
+  console.error("Failed to deploy:", error);
   process.exitCode = 1;
 });
