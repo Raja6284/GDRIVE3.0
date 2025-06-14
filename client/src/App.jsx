@@ -1,3 +1,4 @@
+
 import Upload from "./artifacts/contracts/Upload.sol/Upload.json";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
@@ -12,36 +13,18 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    const provider = new ethers.BrowserProvider(window.ethereum); // Ethers v6
-
+    const provider = new ethers.BrowserProvider(window.ethereum);
     const loadProvider = async () => {
       if (provider) {
-        window.ethereum.on("chainChanged", () => {
-          window.location.reload();
-        });
-
-        window.ethereum.on("accountsChanged", () => {
-          window.location.reload();
-        });
-
+        window.ethereum.on("chainChanged", () => window.location.reload());
+        window.ethereum.on("accountsChanged", () => window.location.reload());
         await provider.send("eth_requestAccounts", []);
-
-  
-
-        const signer = await provider.getSigner(); // await is necessary in Ethers v6
-        const address = await signer.getAddress(); // OR: use signer.address if already available
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
         setAccount(address);
-        // console.log("Connected account:", address);
 
         let contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-
-        const contract = new ethers.Contract(
-          contractAddress,
-          Upload.abi,
-          signer
-        );
-        console.log(contract);
-        console.log(account)
+        const contract = new ethers.Contract(contractAddress, Upload.abi, signer);
         setContract(contract);
         setProvider(provider);
       } else {
@@ -56,7 +39,7 @@ function App() {
     <>
       {!modalOpen && contract && (
         <button
-          className="fixed top-5 right-5 px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600 transition"
+          className="fixed top-4 right-4 px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600 transition"
           onClick={() => setModalOpen(true)}
         >
           Share
@@ -66,19 +49,14 @@ function App() {
       {modalOpen && <Modal setModalOpen={setModalOpen} contract={contract} />}
 
       <div className="min-h-screen bg-gradient-to-br from-purple-700 via-blue-600 to-indigo-800 text-white flex flex-col items-center justify-center px-4 py-10 space-y-10">
-        <h1 className="text-4xl md:text-5xl font-bold drop-shadow-lg">
-          Gdrive 3.0
-        </h1>
-
+        <h1 className="text-4xl md:text-5xl font-bold drop-shadow-lg">Gdrive 3.0</h1>
         <p className="text-lg font-mono bg-black/30 px-4 py-2 rounded-lg border border-white/20">
           Account : {account ? account : "Not connected"}
         </p>
-
         <div className="w-full max-w-4xl space-y-8">
-         {account && contract && (
-  <FileUpload account={account} provider={provider} contract={contract} />
-)}
-
+          {account && contract && (
+            <FileUpload account={account} provider={provider} contract={contract} />
+          )}
           <Display contract={contract} account={account} />
         </div>
       </div>
