@@ -5,42 +5,41 @@ contract Upload {
     
     struct Access {
         address user;
-        bool access; // true if access is granted
-    }
-    
-    mapping(address => string[]) private files; // user to list of files
-    mapping(address => mapping(address => bool)) private permissions; // owner to (user to permission)
-    mapping(address => Access[]) private accessList; // owner to access info
-    mapping(address => mapping(address => bool)) private hasAccessRecord; // to check previous access entries
-
-    // Add a file for the user (only callable by the owner)
-    function addFile(string memory url) external {
-        files[msg.sender].push(url);
+        bool access;
     }
 
-    // Allow access to a specific user
+    mapping(address => string[]) private files; // owner => file URLs
+    mapping(address => mapping(address => bool)) private permissions; // owner => user => has access
+    mapping(address => Access[]) private accessList; // owner => list of access records
+    mapping(address => mapping(address => bool)) private hasAccessRecord; // owner => user => already in accessList
+
+    //  Add file to _user's storage (usually _user == msg.sender)
+    function addFile(address _user, string memory url) external {
+        require(_user == msg.sender, "You can only upload to your own account");
+        files[_user].push(url);
+    }
+
+    //  Allow another user to access your files
     function allowAccess(address user) external {
         permissions[msg.sender][user] = true;
-        
-        if (!hasAccessRecord[msg.sender][user]) {
-            accessList[msg.sender].push(Access(user, true));
-            hasAccessRecord[msg.sender][user] = true;
-        } else {
-            // Update existing access record
+
+        if (hasAccessRecord[msg.sender][user]) {
             for (uint i = 0; i < accessList[msg.sender].length; i++) {
                 if (accessList[msg.sender][i].user == user) {
                     accessList[msg.sender][i].access = true;
                     break;
                 }
             }
+        } else {
+            accessList[msg.sender].push(Access(user, true));
+            hasAccessRecord[msg.sender][user] = true;
         }
     }
 
-    // Disallow access for a specific user
+    //  Revoke access from a user
     function disallowAccess(address user) external {
         permissions[msg.sender][user] = false;
-        
-        // Update access list
+
         for (uint i = 0; i < accessList[msg.sender].length; i++) {
             if (accessList[msg.sender][i].user == user) {
                 accessList[msg.sender][i].access = false;
@@ -49,13 +48,13 @@ contract Upload {
         }
     }
 
-    // Display the files for the user if allowed
+    //  Display files if caller is owner or has permission
     function displayFiles(address user) external view returns (string[] memory) {
-        require(user == msg.sender || permissions[user][msg.sender], "Access denied");
+        require(user == msg.sender || permissions[user][msg.sender], "You don't have access");
         return files[user];
     }
 
-    // Returns the access list for the caller
+    //  View your own access list
     function getAccessList() external view returns (Access[] memory) {
         return accessList[msg.sender];
     }
