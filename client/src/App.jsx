@@ -23,7 +23,7 @@ function App() {
         const address = await signer.getAddress();
         setAccount(address);
 
-        let contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+        let contractAddress = "0x052df792cF606C1Eb6c23FC84B3debDD7a696cCB";
         const contract = new ethers.Contract(contractAddress, Upload.abi, signer);
         setContract(contract);
         setProvider(provider);
